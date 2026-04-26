@@ -1,0 +1,1237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>RESQNET-X — National Disaster Response Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Exo+2:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg-base:#050911;
+  --bg-panel:#090e1a;
+  --bg-card:#0d1525;
+  --bg-card2:#101826;
+  --accent:#00ffaa;
+  --accent-dim:#00cc88;
+  --accent-glow:rgba(0,255,170,0.18);
+  --danger:#ff3d3d;
+  --danger-glow:rgba(255,61,61,0.22);
+  --warn:#ff8c00;
+  --warn-glow:rgba(255,140,0,0.2);
+  --info:#4ab3ff;
+  --safe:#3ddc84;
+  --text-primary:#d4e4f7;
+  --text-secondary:#7a96b4;
+  --text-muted:#3d5470;
+  --border:#1a2e48;
+  --border-bright:#1f3a58;
+  --zone-red:rgba(220,40,40,0.22);
+  --zone-orange:rgba(255,130,0,0.18);
+  --zone-green:rgba(50,200,100,0.14);
+  --mono:'Share Tech Mono',monospace;
+  --head:'Rajdhani',sans-serif;
+  --body:'Exo 2',sans-serif;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+
+body{
+  background:var(--bg-base);
+  color:var(--text-primary);
+  font-family:var(--body);
+  font-size:13px;
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  position:relative;
+}
+
+body::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  background:
+    radial-gradient(ellipse 60% 40% at 35% 50%, rgba(0,60,120,0.12) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 60% at 70% 30%, rgba(0,30,80,0.1) 0%, transparent 60%);
+  pointer-events:none;
+  z-index:0;
+}
+
+/* ─── HEADER ─── */
+.header{
+  position:relative;
+  z-index:10;
+  display:flex;
+  align-items:center;
+  padding:0 16px;
+  height:50px;
+  background:linear-gradient(90deg,#040810 0%,#080f1c 60%,#050c18 100%);
+  border-bottom:1px solid var(--border-bright);
+  flex-shrink:0;
+  gap:12px;
+}
+.header-globe{
+  width:28px;height:28px;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(0,255,170,0.08);
+  border:1px solid rgba(0,255,170,0.25);
+  border-radius:50%;
+  flex-shrink:0;
+}
+.header-globe svg{stroke:var(--accent);fill:none;}
+.header-title{
+  font-family:var(--head);
+  font-size:16px;
+  font-weight:700;
+  letter-spacing:2px;
+  color:var(--text-primary);
+  text-transform:uppercase;
+  flex:1;
+}
+.header-title span{color:var(--accent);}
+.header-subtitle{
+  font-family:var(--mono);
+  font-size:10px;
+  color:var(--text-muted);
+  letter-spacing:1px;
+  margin-left:8px;
+  border-left:1px solid var(--border);
+  padding-left:10px;
+}
+.header-badges{display:flex;gap:6px;align-items:center;}
+.hbadge{
+  font-family:var(--mono);
+  font-size:9px;
+  padding:3px 8px;
+  border-radius:3px;
+  letter-spacing:1px;
+  cursor:pointer;
+  transition:all .2s;
+  border:1px solid;
+}
+.hbadge.live{background:rgba(61,220,132,0.1);border-color:rgba(61,220,132,0.4);color:var(--safe);}
+.hbadge.live::before{content:'● ';animation:blink 1.2s step-start infinite;}
+.hbadge.btn{background:rgba(74,179,255,0.06);border-color:rgba(74,179,255,0.25);color:var(--info);}
+.hbadge.btn:hover{background:rgba(74,179,255,0.15);}
+.hbadge.logout{background:rgba(255,61,61,0.06);border-color:rgba(255,61,61,0.25);color:var(--danger);}
+.hbadge.logout:hover{background:rgba(255,61,61,0.15);}
+.header-time{
+  font-family:var(--mono);
+  font-size:11px;
+  color:var(--accent);
+  border-left:1px solid var(--border);
+  padding-left:12px;
+  min-width:68px;
+}
+
+/* ─── BODY LAYOUT ─── */
+.main{
+  position:relative;
+  z-index:1;
+  display:flex;
+  flex:1;
+  overflow:hidden;
+}
+
+/* ─── SIDEBAR ─── */
+.sidebar{
+  width:172px;
+  flex-shrink:0;
+  background:var(--bg-panel);
+  border-right:1px solid var(--border);
+  display:flex;
+  flex-direction:column;
+  padding:10px 0;
+}
+.nav-section{padding:6px 0 12px;}
+.nav-label{
+  font-family:var(--mono);
+  font-size:8px;
+  letter-spacing:2px;
+  color:var(--text-muted);
+  padding:4px 14px 8px;
+  text-transform:uppercase;
+}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 14px;
+  cursor:pointer;
+  transition:all .2s;
+  border-left:3px solid transparent;
+  font-family:var(--head);
+  font-size:13px;
+  font-weight:600;
+  letter-spacing:1px;
+  color:var(--text-secondary);
+  text-transform:uppercase;
+}
+.nav-item:hover{
+  background:rgba(0,255,170,0.04);
+  color:var(--text-primary);
+  border-left-color:var(--text-muted);
+}
+.nav-item.active{
+  background:rgba(0,255,170,0.08);
+  color:var(--accent);
+  border-left-color:var(--accent);
+}
+.nav-icon{width:16px;height:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+
+.sidebar-sep{height:1px;background:var(--border);margin:6px 12px;}
+
+.integration-block{margin-top:auto;padding:10px 12px 6px;}
+.int-title{
+  font-family:var(--mono);
+  font-size:8px;
+  letter-spacing:2px;
+  color:var(--text-muted);
+  text-transform:uppercase;
+  margin-bottom:8px;
+}
+.int-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:5px 0;
+  font-family:var(--mono);
+  font-size:10px;
+  color:var(--text-secondary);
+  border-bottom:1px solid var(--border);
+}
+.int-row:last-child{border-bottom:none;}
+.int-bars{display:flex;gap:3px;align-items:center;}
+.bar{width:7px;height:9px;border-radius:1px;background:var(--text-muted);opacity:.3;}
+.bar.on-g{background:var(--safe);opacity:1;}
+.bar.on-r{background:var(--danger);opacity:1;}
+.status-dot{width:7px;height:7px;border-radius:50%;}
+.status-dot.green{background:var(--safe);box-shadow:0 0 6px var(--safe);}
+.status-dot.red{background:var(--danger);box-shadow:0 0 6px var(--danger);}
+
+/* ─── MAP AREA ─── */
+.map-container{
+  flex:1;
+  position:relative;
+  overflow:hidden;
+  background:#07101e;
+}
+.map-header{
+  position:absolute;top:0;left:0;right:0;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 14px;
+  background:rgba(5,9,17,0.7);
+  border-bottom:1px solid var(--border);
+  backdrop-filter:blur(4px);
+  z-index:5;
+}
+.map-title{
+  font-family:var(--head);
+  font-size:12px;
+  font-weight:600;
+  letter-spacing:1.5px;
+  color:var(--text-secondary);
+  text-transform:uppercase;
+}
+.map-title span{
+  font-family:var(--mono);
+  font-size:9px;
+  color:var(--text-muted);
+  margin-left:6px;
+}
+.map-legend{
+  display:flex;gap:16px;align-items:center;
+  font-family:var(--mono);font-size:9px;
+  background:rgba(9,14,26,0.85);
+  border:1px solid var(--border);
+  padding:5px 10px;
+  border-radius:4px;
+}
+.leg{display:flex;align-items:center;gap:5px;}
+.leg-dot{width:8px;height:8px;border-radius:2px;}
+
+/* Map SVG */
+#map-svg{
+  position:absolute;
+  top:36px;left:0;right:0;bottom:0;
+  width:100%;height:calc(100% - 36px);
+}
+
+/* Pulse animation for beacons */
+@keyframes pulse-ring{
+  0%{r:8;opacity:.8;}
+  100%{r:22;opacity:0;}
+}
+@keyframes pulse-ring2{
+  0%{r:5;opacity:.6;}
+  100%{r:18;opacity:0;}
+}
+.pulse-c1{animation:pulse-ring 1.8s ease-out infinite;}
+.pulse-c2{animation:pulse-ring 1.8s ease-out infinite .6s;}
+.pulse-c3{animation:pulse-ring 1.8s ease-out infinite 1.2s;}
+@keyframes float-drone{
+  0%,100%{transform:translateY(0);}
+  50%{transform:translateY(-4px);}
+}
+.drone-icon{animation:float-drone 2.5s ease-in-out infinite;}
+.drone-icon2{animation:float-drone 2.5s ease-in-out infinite .8s;}
+.drone-icon3{animation:float-drone 2.5s ease-in-out infinite 1.4s;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0;}}
+@keyframes zone-pulse{
+  0%,100%{opacity:1;}
+  50%{opacity:.7;}
+}
+.zone-red-fill{animation:zone-pulse 3s ease-in-out infinite;}
+.zone-orange-fill{animation:zone-pulse 3.5s ease-in-out infinite .5s;}
+@keyframes route-dash{to{stroke-dashoffset:-30;}}
+.route-line{stroke-dasharray:8 5;animation:route-dash 1.2s linear infinite;}
+@keyframes scan-ring{
+  0%{r:0;opacity:.9;}
+  100%{r:50;opacity:0;}
+}
+.scan-ring{animation:scan-ring 3s linear infinite;}
+.scan-ring2{animation:scan-ring 3s linear infinite 1.5s;}
+@keyframes warn-blink{0%,100%{opacity:1;fill:#ff3d3d;}50%{opacity:.4;fill:#ff8c00;}}
+.alert-bell{animation:warn-blink 1s step-start infinite;}
+
+/* ─── RIGHT PANEL ─── */
+.right-panel{
+  width:290px;
+  flex-shrink:0;
+  background:var(--bg-panel);
+  border-left:1px solid var(--border);
+  display:flex;
+  flex-direction:column;
+  overflow-y:auto;
+}
+.rp-section{
+  border-bottom:1px solid var(--border);
+  padding:10px;
+}
+.rp-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:8px;
+}
+.rp-title{
+  font-family:var(--head);
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:1.5px;
+  color:var(--text-primary);
+  text-transform:uppercase;
+}
+.rp-badge{
+  font-family:var(--mono);
+  font-size:8px;
+  padding:2px 7px;
+  border-radius:3px;
+  letter-spacing:1px;
+}
+.badge-embb{background:rgba(74,179,255,0.12);color:var(--info);border:1px solid rgba(74,179,255,0.3);}
+.badge-urllc{background:rgba(255,140,0,0.12);color:var(--warn);border:1px solid rgba(255,140,0,0.3);}
+.badge-mmtc{background:rgba(0,255,170,0.1);color:var(--accent);border:1px solid rgba(0,255,170,0.25);}
+
+/* Video feed */
+.video-feed{
+  position:relative;
+  width:100%;
+  aspect-ratio:16/9;
+  background:#0a121f;
+  border:1px solid var(--border-bright);
+  border-radius:4px;
+  overflow:hidden;
+}
+.video-bg{
+  position:absolute;inset:0;
+  background:
+    linear-gradient(160deg,#0d1a2e 0%,#070e1c 50%,#0a1526 100%);
+}
+.video-noise{
+  position:absolute;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
+  opacity:.5;
+}
+.detection-box{
+  position:absolute;
+  border:2px solid;
+  border-radius:2px;
+}
+.det-blue{border-color:#4ab3ff;box-shadow:0 0 8px rgba(74,179,255,0.4);}
+.det-green{border-color:#3ddc84;box-shadow:0 0 8px rgba(61,220,132,0.4);}
+.det-label{
+  position:absolute;
+  top:-18px;left:0;
+  font-family:var(--mono);
+  font-size:8px;
+  padding:1px 5px;
+  white-space:nowrap;
+}
+.det-blue .det-label{background:#4ab3ff;color:#000;}
+.det-green .det-label{background:#3ddc84;color:#000;}
+.video-scan-line{
+  position:absolute;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,rgba(0,255,170,0.6),transparent);
+  animation:scan-down 3s linear infinite;
+}
+@keyframes scan-down{0%{top:0%}100%{top:100%}}
+.video-corner{position:absolute;width:10px;height:10px;border-color:var(--accent);border-style:solid;opacity:.7;}
+.vc-tl{top:4px;left:4px;border-width:2px 0 0 2px;}
+.vc-tr{top:4px;right:4px;border-width:2px 2px 0 0;}
+.vc-bl{bottom:4px;left:4px;border-width:0 0 2px 2px;}
+.vc-br{bottom:4px;right:4px;border-width:0 2px 2px 0;}
+.video-info{
+  position:absolute;bottom:4px;left:6px;right:6px;
+  display:flex;justify-content:space-between;
+  font-family:var(--mono);font-size:8px;color:rgba(0,255,170,0.7);
+}
+.feed-label{
+  position:absolute;top:5px;left:5px;
+  font-family:var(--mono);font-size:7px;
+  background:rgba(0,0,0,0.6);color:var(--warn);
+  padding:2px 6px;border-radius:2px;border:1px solid rgba(255,140,0,0.4);
+}
+
+/* Alerts */
+.alerts-log{display:flex;flex-direction:column;gap:4px;}
+.alert-item{
+  display:flex;align-items:flex-start;gap:8px;
+  padding:7px 8px;
+  border-radius:3px;
+  border-left:3px solid;
+  background:var(--bg-card);
+  font-family:var(--mono);
+  font-size:10px;
+  line-height:1.5;
+  cursor:pointer;
+  transition:all .2s;
+}
+.alert-item:hover{background:var(--bg-card2);}
+.alert-item.critical{border-color:var(--danger);}
+.alert-item.warning{border-color:var(--warn);}
+.alert-item.info{border-color:var(--info);}
+.alert-time{color:var(--text-muted);font-size:9px;white-space:nowrap;margin-top:1px;}
+.alert-text{color:var(--text-primary);}
+.alert-source{color:var(--text-secondary);font-size:9px;}
+.alert-indicator{
+  width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:3px;
+}
+.ai-red{background:var(--danger);box-shadow:0 0 4px var(--danger);}
+.ai-orange{background:var(--warn);box-shadow:0 0 4px var(--warn);}
+.ai-blue{background:var(--info);box-shadow:0 0 4px var(--info);}
+
+.alerts-filter{
+  display:flex;align-items:center;gap:6px;margin-top:8px;
+}
+.filter-label{font-family:var(--mono);font-size:9px;color:var(--text-muted);}
+.filter-select{
+  font-family:var(--mono);font-size:9px;
+  background:var(--bg-card);color:var(--text-primary);
+  border:1px solid var(--border-bright);
+  padding:3px 7px;border-radius:3px;
+  flex:1;cursor:pointer;
+}
+
+/* Resource overview */
+.resources-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.res-card{
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-radius:4px;
+  padding:8px;
+}
+.res-card-title{
+  font-family:var(--mono);font-size:8px;
+  color:var(--text-muted);letter-spacing:1px;
+  text-transform:uppercase;margin-bottom:8px;
+}
+.res-table{width:100%;border-collapse:collapse;}
+.res-table th{
+  font-family:var(--mono);font-size:8px;
+  color:var(--text-muted);text-align:center;
+  padding:2px 0;border-bottom:1px solid var(--border);
+}
+.res-table td{
+  font-family:var(--mono);font-size:13px;
+  font-weight:700;text-align:center;
+  padding:4px 0;color:var(--accent);
+}
+.res-table td.zero{color:var(--text-muted);}
+.res-icon{font-size:11px;color:var(--text-secondary);}
+
+/* Slice chart */
+.slice-chart{
+  position:relative;height:40px;
+  display:flex;align-items:flex-end;gap:2px;
+  padding:0 2px;
+}
+.chart-bar{
+  flex:1;border-radius:2px 2px 0 0;
+  background:rgba(0,255,170,0.3);
+  transition:height .5s ease;
+}
+.chart-bar.high{background:rgba(255,61,61,0.6);}
+.chart-limit{
+  position:absolute;left:2px;right:2px;
+  border-top:1px dashed rgba(255,140,0,0.5);
+}
+
+/* Grid overlay on map */
+.map-grid{
+  position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(26,46,72,0.3) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(26,46,72,0.3) 1px,transparent 1px);
+  background-size:40px 40px;
+  pointer-events:none;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:var(--bg-panel);}
+::-webkit-scrollbar-thumb{background:var(--border-bright);border-radius:2px;}
+
+/* Responsive */
+@media(max-width:1024px){
+  .right-panel{width:260px;}
+  .sidebar{width:150px;}
+}
+
+/* Tooltip */
+.tooltip{
+  position:fixed;
+  background:var(--bg-card);
+  border:1px solid var(--border-bright);
+  padding:6px 10px;
+  border-radius:4px;
+  font-family:var(--mono);font-size:9px;
+  color:var(--text-primary);
+  pointer-events:none;
+  z-index:100;
+  display:none;
+  box-shadow:0 4px 20px rgba(0,0,0,0.5);
+}
+
+.person-figure{
+  display:inline-block;
+  width:12px;height:20px;
+  position:relative;
+}
+
+/* status bar bottom */
+.status-bar{
+  height:22px;
+  background:#040810;
+  border-top:1px solid var(--border);
+  display:flex;align-items:center;
+  padding:0 14px;
+  gap:20px;
+  flex-shrink:0;
+  z-index:10;
+  position:relative;
+}
+.sb-item{
+  display:flex;align-items:center;gap:6px;
+  font-family:var(--mono);font-size:9px;
+  color:var(--text-muted);
+}
+.sb-dot{width:5px;height:5px;border-radius:50%;}
+</style>
+</head>
+<body>
+
+<!-- ─── HEADER ─── -->
+<header class="header">
+  <div class="header-globe">
+    <svg width="14" height="14" viewBox="0 0 24 24" stroke-width="1.5">
+      <circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/>
+    </svg>
+  </div>
+  <div class="header-title">RESQNET<span>-X</span><span class="header-subtitle">NATIONAL DISASTER RESPONSE · 100 5G LABS SANDBOX</span></div>
+  <div class="header-badges">
+    <div class="hbadge live">LIVE</div>
+    <div class="hbadge btn" onclick="alert('Settings panel — configure slices, thresholds, alerts')">⚙ SETTINGS</div>
+    <div class="hbadge logout">⏻ LOGOUT</div>
+  </div>
+  <div class="header-time" id="clock">00:00:00</div>
+</header>
+
+<!-- ─── MAIN BODY ─── -->
+<div class="main">
+
+  <!-- ─── SIDEBAR ─── -->
+  <aside class="sidebar">
+    <div class="nav-section">
+      <div class="nav-label">Navigation</div>
+
+      <div class="nav-item active" onclick="setNav(this)">
+        <div class="nav-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+            <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+          </svg>
+        </div>
+        Dashboard
+      </div>
+
+      <div class="nav-item" onclick="setNav(this)">
+        <div class="nav-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+          </svg>
+        </div>
+        Missions
+      </div>
+
+      <div class="nav-item" onclick="setNav(this)">
+        <div class="nav-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
+            <line x1="6" y1="20" x2="6" y2="14"/>
+          </svg>
+        </div>
+        Analytics
+      </div>
+
+      <div class="nav-item" onclick="setNav(this)">
+        <div class="nav-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+          </svg>
+        </div>
+        Reporting
+      </div>
+    </div>
+
+    <div class="sidebar-sep"></div>
+
+    <div class="integration-block">
+      <div class="int-title">Integration (NDMA/DoT)</div>
+      <div class="int-row">
+        <span>NDMA</span>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <div class="int-bars">
+            <div class="bar on-g"></div><div class="bar on-g"></div>
+            <div class="bar on-g"></div><div class="bar on-g"></div>
+          </div>
+          <div class="status-dot green"></div>
+        </div>
+      </div>
+      <div class="int-row">
+        <span>DoT</span>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <div class="int-bars">
+            <div class="bar on-g"></div><div class="bar on-g"></div>
+            <div class="bar on-r"></div><div class="bar"></div>
+          </div>
+          <div class="status-dot red"></div>
+        </div>
+      </div>
+      <div class="int-row" style="margin-top:6px;">
+        <span style="color:var(--text-muted);font-size:8px;">5G SLICE</span>
+        <span style="color:var(--accent);font-size:9px;" id="slice-status">eMBB ✓</span>
+      </div>
+      <div class="int-row">
+        <span style="color:var(--text-muted);font-size:8px;">LATENCY</span>
+        <span style="color:var(--safe);font-size:9px;" id="latency">4.2ms</span>
+      </div>
+      <div class="int-row">
+        <span style="color:var(--text-muted);font-size:8px;">UPTIME</span>
+        <span style="color:var(--info);font-size:9px;">99.97%</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ─── MAP ─── -->
+  <div class="map-container">
+    <div class="map-header">
+      <div class="map-title">Geospatial Situation Map <span>(React.js, Leaflet.js)</span></div>
+      <div class="map-legend">
+        <div class="leg"><div class="leg-dot" style="background:#dc2828;"></div><span style="color:#ff6060;">RED: HIGH-RISK (COLLAPSED)</span></div>
+        <div class="leg"><div class="leg-dot" style="background:#ff7a00;"></div><span style="color:#ffaa44;">ORANGE: CAUTION (FLOODED)</span></div>
+        <div class="leg"><div class="leg-dot" style="background:#2da65a;"></div><span style="color:#4ddd84;">GREEN: SAFE</span></div>
+      </div>
+    </div>
+
+    <div class="map-grid"></div>
+
+    <svg id="map-svg" viewBox="0 0 760 520" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <filter id="glow-green"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <filter id="glow-red"><feGaussianBlur stdDeviation="4" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <filter id="glow-soft"><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      </defs>
+
+      <!-- ─── RISK ZONES ─── -->
+      <!-- GREEN zone (top right + right) -->
+      <path class="zone-green-fill"
+        d="M420,30 L760,30 L760,520 L480,520 L430,460 L400,380 L430,280 L410,180 L420,30Z"
+        fill="rgba(45,166,90,0.15)" stroke="rgba(45,166,90,0.3)" stroke-width="1.5" fill-rule="evenodd"/>
+
+      <!-- ORANGE zone (middle) -->
+      <path class="zone-orange-fill"
+        d="M120,160 C160,120 220,100 280,140 C340,90 420,30 420,30 L410,180 L430,280 L400,380 L340,420 L260,460 L200,480 L160,440 L100,380 L80,300 L100,220 L120,160Z"
+        fill="rgba(220,100,0,0.18)" stroke="rgba(220,100,0,0.35)" stroke-width="1.5"/>
+
+      <!-- RED zone (left/collapsed) -->
+      <path class="zone-red-fill"
+        d="M0,60 L200,60 C220,80 240,100 260,140 C220,100 160,120 120,160 L100,220 L80,300 L100,380 L160,440 L130,480 L0,480Z"
+        fill="rgba(200,30,30,0.22)" stroke="rgba(200,30,30,0.4)" stroke-width="1.5"/>
+
+      <!-- ─── SCAN RINGS (Large area scanners) ─── -->
+      <circle class="scan-ring" cx="310" cy="260" r="0" fill="none" stroke="rgba(0,255,170,0.15)" stroke-width="1.5"/>
+      <circle class="scan-ring2" cx="310" cy="260" r="0" fill="none" stroke="rgba(0,255,170,0.1)" stroke-width="1"/>
+
+      <!-- ─── GNN OPTIMIZED ROUTE ─── -->
+      <path class="route-line" d="M500,390 Q420,370 360,360 Q300,340 260,320" fill="none" stroke="#00ffaa" stroke-width="2" opacity="0.7"/>
+      <path d="M258,316 L255,328 L265,322Z" fill="#00ffaa" opacity="0.8"/>
+      <!-- Route arrow to RedCap SOS -->
+      <path class="route-line" d="M490,400 Q470,430 460,450" fill="none" stroke="#4ab3ff" stroke-width="1.5" opacity="0.5"/>
+      <!-- GNN Label -->
+      <rect x="390" y="438" width="140" height="30" rx="4" fill="rgba(0,255,170,0.08)" stroke="rgba(0,255,170,0.25)" stroke-width="1"/>
+      <text x="460" y="451" text-anchor="middle" font-family="'Share Tech Mono',monospace" font-size="9" fill="#00ffaa" font-weight="700" letter-spacing="1">GNN OPTIMIZED</text>
+      <text x="460" y="463" text-anchor="middle" font-family="'Share Tech Mono',monospace" font-size="9" fill="#00cc88" letter-spacing="1">ROUTE</text>
+
+      <!-- ─── RESPONDER ALPHA (Top) ─── -->
+      <g class="node-group" data-label="Responder-Alpha · Active · Zone B" style="cursor:pointer" onclick="showTooltip(event,'Responder-Alpha','Active · Zone B · ETA 2min')">
+        <!-- Pulse rings -->
+        <circle class="pulse-c1" cx="245" cy="185" r="8" fill="none" stroke="rgba(74,179,255,0.5)" stroke-width="1.5"/>
+        <circle class="pulse-c2" cx="245" cy="185" r="5" fill="none" stroke="rgba(74,179,255,0.4)" stroke-width="1"/>
+        <!-- Pin icon -->
+        <circle cx="245" cy="185" r="10" fill="rgba(74,179,255,0.15)" stroke="#4ab3ff" stroke-width="1.5"/>
+        <circle cx="245" cy="183" r="5" fill="#4ab3ff" opacity="0.8"/>
+        <line x1="245" y1="188" x2="245" y2="196" stroke="#4ab3ff" stroke-width="2" stroke-linecap="round"/>
+        <!-- Label -->
+        <rect x="170" y="168" width="60" height="14" rx="2" fill="rgba(9,14,26,0.85)" stroke="rgba(74,179,255,0.3)" stroke-width="0.5"/>
+        <text x="200" y="178" text-anchor="middle" font-family="'Share Tech Mono',monospace" font-size="8" fill="#4ab3ff">Responder-α</text>
+      </g>
+
+      <!-- ─── DRONE-01 YOLO (Top left area) ─── -->
+      <g class="drone-icon" data-label="Drone-01" style="cursor:pointer" onclick="showTooltip(event,'Drone-01 (YOLO Det.)','Altitude: 120m · Speed: 45km/h · Battery: 78%')">
+        <circle class="pulse-c1" cx="175" cy="230" r="8" fill="none" stroke="rgba(0,255,170,0.4)" stroke-width="1.5"/>
+        <!-- Drone body -->
+        <rect x="162" y="222" width="26" height="16" rx="4" fill="rgba(0,30,50,0.9)" stroke="rgba(0,255,170,0.6)" stroke-width="1.5"/>
+        <circle cx="163" cy="222" r="4" fill="none" stroke="rgba(0,255,170,0.5)" stroke-width="1.5"/>
+        <circle cx="189" cy="222" r="4" fill="none" stroke="rgba(0,255,170,0.5)" stroke-width="1.5"/>
+        <circle cx="163" cy="238" r="4" fill="none" stroke="rgba(0,255,170,0.5)" stroke-width="1.5"/>
+        <circle cx="189" cy="238" r="4" fill="none" stroke="rgba(0,255,170,0.5)" stroke-width="1.5"/>
+        <circle cx="176" cy="230" r="3" fill="rgba(0,255,170,0.3)" stroke="rgba(0,255,170,0.7)" stroke-width="1"/>
+        <rect x="170" y="210" width="60" height="14" rx="2" fill="rgba(9,14,26,0.85)" stroke="rgba(0,255,170,0.25)" stroke-width="0.5"/>
+        <text x="200" y="220" text-anchor="middle" font-family="'Share Tech Mono',monospace" font-size="8" fill="#00ffaa">Drone-01 (YOLO)</text>
+      </g>
+
+      <!-- ─── DRONE-01-ALPHA (Middle top) ─── -->
+      <g class="drone-icon2" data-label="Drone-01-Alpha" style="cursor:pointer" onclick="showTooltip(event,'Drone-01-Alpha','Altitude: 95m · Speed: 38km/h · Battery: 91%')">
+        <circle class="pulse-c2" cx="310" cy="155" r="8" fill="none" stroke="rgba(0,255,170,0.4)" stroke-width="1.5"/>
+        <rect x="297" y="147" width="26" height="16" rx="4" fill="rgba(0,30,50,0.9)" stroke="rgba(0,255,170,0.6)" stroke-width="1.5"/>
+        <circle cx="298" cy="147" r="4" fill="none" stroke="rgba(0,255,170,0.5)" stroke-width="1.5"/>
+        <circle cx="324" cy="147" r="4" fill="none" stroke="rgba(0,255,170,0.5)" stroke-width="1.5"/>
+        <circle cx="298" cy="163" r="4" fill="none" stroke="rgba(0,255,170,0.5)" stroke-width="1.5"/>
+        <circle cx="324" cy="163" r="4" fill="none" stroke="rgba(0,255,170,0.5)" stroke-width="1.5"/>
+        <circle cx="310" cy="155" r="3" fill="rgba(0,255,170,0.3)" stroke="rgba(0,255,170,0.7)" stroke-width="1"/>
+        <rect x="250" y="134" width="72" height="13" rx="2" fill="rgba(9,14,26,0.85)" stroke="rgba(0,255,170,0.25)" stroke-width="0.5"/>
+        <text x="286" y="143" text-anchor="middle" font-family="'Share Tech Mono',monospace" font-size="8" fill="#00ffaa">Drone-01-Alpha</text>
+      </g>
+
+      <!-- ─── DRONE-01 YOLO (Top right) ─── -->
+      <g class="drone-icon3" data-label="Drone-01 Top-Right" style="cursor:pointer" onclick="showTooltip(event,'Drone-01 (YOLO Det.)','Detection Active · 3 Survivors Found')">
+        <circle class="pulse-c3" cx="480" cy="105" r="8" fill="none" stroke="rgba(0,255,170,0.4)" stroke-width="1.5"/>
+        <rect x="467" y="97" width="26" height="16" rx="4" fill="rgba(0,30,50,0.9)" stroke="rgba(0,255,170,0.6)" stroke-width="1.5"/>
+        <circle cx="468" cy="97" r="4" fill="none" stroke="rgba(0,255,170,0.5)" stroke-width="1.5"/>
+        <circle cx="494" cy="97" r="4" fill="none" stroke="rgba(0,255,170,0.5)" stroke-width="1.5"/>
+        <circle cx="468" cy="113" r="4" fill="none" stroke="rgba(0,255,170,0.5)" stroke-width="1.5"/>
+        <circle cx="494" cy="113" r="4" fill="none" stroke="rgba(0,255,170,0.5)" stroke-width="1.5"/>
+        <circle cx="480" cy="105" r="3" fill="rgba(0,255,170,0.3)" stroke="rgba(0,255,170,0.7)" stroke-width="1"/>
+        <rect x="425" y="84" width="78" height="13" rx="2" fill="rgba(9,14,26,0.85)" stroke="rgba(0,255,170,0.25)" stroke-width="0.5"/>
+        <text x="464" y="93" text-anchor="middle" font-family="'Share Tech Mono',monospace" font-size="8" fill="#00ffaa">Drone-01 (YOLO)</text>
+      </g>
+
+      <!-- ─── SURVIVORS ─── -->
+      <!-- Survivor-X Top right (high conf) -->
+      <g style="cursor:pointer" onclick="showTooltip(event,'Survivor-X #1','Conf: 94% · GPS: 28.4°N 77.2°E · Status: Alive')">
+        <circle class="pulse-c1" cx="560" cy="120" r="8" fill="none" stroke="rgba(255,140,0,0.6)" stroke-width="1.5"/>
+        <!-- Person silhouette -->
+        <circle cx="560" cy="108" r="6" fill="rgba(255,140,0,0.25)" stroke="#ff8c00" stroke-width="1.5"/>
+        <line x1="560" y1="114" x2="560" y2="128" stroke="#ff8c00" stroke-width="2" stroke-linecap="round"/>
+        <line x1="555" y1="118" x2="565" y2="118" stroke="#ff8c00" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="560" y1="128" x2="555" y2="136" stroke="#ff8c00" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="560" y1="128" x2="565" y2="136" stroke="#ff8c00" stroke-width="1.5" stroke-linecap="round"/>
+        <rect x="510" y="136" width="92" height="14" rx="2" fill="rgba(9,14,26,0.85)" stroke="rgba(255,140,0,0.3)" stroke-width="0.5"/>
+        <text x="556" y="146" text-anchor="middle" font-family="'Share Tech Mono',monospace" font-size="8" fill="#ff8c00">Survivor-X (Conf: 94%)</text>
+      </g>
+
+      <!-- Survivor-X #2 (middle right) -->
+      <g style="cursor:pointer" onclick="showTooltip(event,'Survivor-X #2','Conf: 94% · GPS: 28.3°N 77.1°E · Status: Alive')">
+        <circle class="pulse-c2" cx="490" cy="190" r="7" fill="none" stroke="rgba(255,140,0,0.5)" stroke-width="1.5"/>
+        <circle cx="490" cy="179" r="5" fill="rgba(255,140,0,0.2)" stroke="#ff8c00" stroke-width="1.5"/>
+        <line x1="490" y1="184" x2="490" y2="196" stroke="#ff8c00" stroke-width="2" stroke-linecap="round"/>
+        <line x1="485" y1="188" x2="495" y2="188" stroke="#ff8c00" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="490" y1="196" x2="486" y2="203" stroke="#ff8c00" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="490" y1="196" x2="494" y2="203" stroke="#ff8c00" stroke-width="1.5" stroke-linecap="round"/>
+        <rect x="430" y="203" width="92" height="14" rx="2" fill="rgba(9,14,26,0.85)" stroke="rgba(255,140,0,0.3)" stroke-width="0.5"/>
+        <text x="476" y="213" text-anchor="middle" font-family="'Share Tech Mono',monospace" font-size="8" fill="#ff8c00">Survivor-X (Conf: 94%)</text>
+      </g>
+
+      <!-- Survivor-X #3 (middle, Responder area) -->
+      <g style="cursor:pointer" onclick="showTooltip(event,'Survivor-X #3','Conf: 87% · GPS: 28.2°N 77.0°E · Status: Alive')">
+        <circle class="pulse-c3" cx="330" cy="220" r="6" fill="none" stroke="rgba(255,140,0,0.5)" stroke-width="1.5"/>
+        <circle cx="330" cy="210" r="5" fill="rgba(255,140,0,0.2)" stroke="#ff8c00" stroke-width="1.5"/>
+        <line x1="330" y1="215" x2="330" y2="226" stroke="#ff8c00" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="325" y1="219" x2="335" y2="219" stroke="#ff8c00" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="330" y1="226" x2="326" y2="233" stroke="#ff8c00" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="330" y1="226" x2="334" y2="233" stroke="#ff8c00" stroke-width="1.5" stroke-linecap="round"/>
+        <rect x="273" y="233" width="70" height="13" rx="2" fill="rgba(9,14,26,0.85)" stroke="rgba(255,140,0,0.3)" stroke-width="0.5"/>
+        <text x="308" y="242" text-anchor="middle" font-family="'Share Tech Mono',monospace" font-size="8" fill="#ff8c00">Survivor-X</text>
+      </g>
+
+      <!-- Survivor-X #4 (Left danger zone) -->
+      <g style="cursor:pointer" onclick="showTooltip(event,'Survivor-X #4','Conf: 94% · GPS: 28.1°N 76.9°E · CRITICAL')">
+        <circle class="pulse-c1" cx="135" cy="340" r="8" fill="none" stroke="rgba(255,61,61,0.7)" stroke-width="2"/>
+        <circle cx="135" cy="328" r="6" fill="rgba(255,61,61,0.2)" stroke="#ff3d3d" stroke-width="1.5"/>
+        <line x1="135" y1="334" x2="135" y2="347" stroke="#ff3d3d" stroke-width="2" stroke-linecap="round"/>
+        <line x1="129" y1="338" x2="141" y2="338" stroke="#ff3d3d" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="135" y1="347" x2="130" y2="355" stroke="#ff3d3d" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="135" y1="347" x2="140" y2="355" stroke="#ff3d3d" stroke-width="1.5" stroke-linecap="round"/>
+        <rect x="60" y="355" width="112" height="14" rx="2" fill="rgba(9,14,26,0.9)" stroke="rgba(255,61,61,0.4)" stroke-width="0.5"/>
+        <text x="116" y="365" text-anchor="middle" font-family="'Share Tech Mono',monospace" font-size="8" fill="#ff3d3d">Survivor-X (Conf: 94%)</text>
+      </g>
+
+      <!-- ─── ALERT BELLS ─── -->
+      <!-- Bell 1 (center danger) -->
+      <g style="cursor:pointer" onclick="showTooltip(event,'SOS Alert','RedCap-C1 signal · Zone A · Priority: CRITICAL')">
+        <circle class="pulse-c1" cx="280" cy="295" r="8" fill="none" stroke="rgba(255,61,61,0.6)" stroke-width="1.5"/>
+        <text class="alert-bell" x="280" y="302" text-anchor="middle" font-size="18">🔔</text>
+      </g>
+
+      <!-- Bell 2 (left center) -->
+      <g style="cursor:pointer" onclick="showTooltip(event,'SOS Alert','Survivor beacon · Zone A · Priority: HIGH')">
+        <circle class="pulse-c2" cx="200" cy="360" r="7" fill="none" stroke="rgba(255,61,61,0.5)" stroke-width="1.5"/>
+        <text class="alert-bell" x="200" y="368" text-anchor="middle" font-size="16">🔔</text>
+      </g>
+
+      <!-- ─── REDCAP-C1 ─── -->
+      <g style="cursor:pointer" onclick="showTooltip(event,'RedCap-C1','mMTC IoT Node · Signal: -82dBm · Battery: 34%')">
+        <circle class="pulse-c1" cx="355" cy="350" r="8" fill="none" stroke="rgba(74,179,255,0.5)" stroke-width="1.5"/>
+        <circle class="pulse-c2" cx="355" cy="350" r="5" fill="none" stroke="rgba(74,179,255,0.35)" stroke-width="1"/>
+        <rect x="345" y="340" width="20" height="20" rx="3" fill="rgba(0,30,70,0.9)" stroke="#4ab3ff" stroke-width="1.5"/>
+        <text x="355" y="354" text-anchor="middle" font-family="monospace" font-size="9" fill="#4ab3ff">RC</text>
+        <rect x="296" y="330" width="60" height="13" rx="2" fill="rgba(9,14,26,0.85)" stroke="rgba(74,179,255,0.3)" stroke-width="0.5"/>
+        <text x="326" y="339" text-anchor="middle" font-family="'Share Tech Mono',monospace" font-size="8" fill="#4ab3ff">RedCap-C1</text>
+      </g>
+
+      <!-- ─── REDCAP SOS ─── -->
+      <g style="cursor:pointer" onclick="showTooltip(event,'RedCap SOS','Emergency beacon active · Zone C · Signal: STRONG')">
+        <circle class="pulse-c1" cx="490" cy="420" r="12" fill="none" stroke="rgba(255,61,61,0.7)" stroke-width="2"/>
+        <circle class="pulse-c2" cx="490" cy="420" r="8" fill="none" stroke="rgba(255,61,61,0.5)" stroke-width="1.5"/>
+        <circle class="pulse-c3" cx="490" cy="420" r="4" fill="none" stroke="rgba(255,61,61,0.4)" stroke-width="1"/>
+        <circle cx="490" cy="420" r="10" fill="rgba(255,30,30,0.2)" stroke="#ff3d3d" stroke-width="1.5"/>
+        <text x="490" y="425" text-anchor="middle" font-family="monospace" font-size="12" fill="#ff3d3d">!</text>
+        <rect x="448" y="408" width="80" height="13" rx="2" fill="rgba(9,14,26,0.9)" stroke="rgba(255,61,61,0.4)" stroke-width="0.5"/>
+        <text x="488" y="417" text-anchor="middle" font-family="'Share Tech Mono',monospace" font-size="8" fill="#ff3d3d">RedCap SOS</text>
+      </g>
+
+      <!-- ─── RESPONDER ALPHA (Bottom) ─── -->
+      <g style="cursor:pointer" onclick="showTooltip(event,'Responder-Alpha','Deployed · Moving to Zone A · ETA 3min')">
+        <circle class="pulse-c2" cx="300" cy="390" r="7" fill="none" stroke="rgba(74,179,255,0.4)" stroke-width="1.5"/>
+        <circle cx="300" cy="390" r="9" fill="rgba(74,179,255,0.12)" stroke="#4ab3ff" stroke-width="1.5"/>
+        <circle cx="300" cy="388" r="4" fill="#4ab3ff" opacity="0.7"/>
+        <line x1="300" y1="392" x2="300" y2="400" stroke="#4ab3ff" stroke-width="2" stroke-linecap="round"/>
+        <rect x="240" y="402" width="90" height="13" rx="2" fill="rgba(9,14,26,0.85)" stroke="rgba(74,179,255,0.3)" stroke-width="0.5"/>
+        <text x="285" y="411" text-anchor="middle" font-family="'Share Tech Mono',monospace" font-size="8" fill="#4ab3ff">Responder-Alpha</text>
+      </g>
+
+      <!-- ─── DIRECTION ARROWS ─── -->
+      <!-- Responder to Survivor-X #4 -->
+      <path d="M240,200 C210,250 175,290 150,320" fill="none" stroke="#4ab3ff" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#arr-blue)" opacity="0.6"/>
+      <!-- Drone to Survivor -->
+      <path d="M510,115 C530,140 555,130 562,122" fill="none" stroke="#00ffaa" stroke-width="1.5" marker-end="url(#arr-green)" opacity="0.5"/>
+      <!-- Responder bottom to SOS -->
+      <path d="M315,395 C370,400 420,415 472,418" fill="none" stroke="#4ab3ff" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#arr-blue)" opacity="0.5"/>
+      <!-- Drone-Alpha to Survivor-X #3 -->
+      <path d="M325,168 C330,190 332,205 330,215" fill="none" stroke="#00ffaa" stroke-width="1.5" marker-end="url(#arr-green)" opacity="0.4"/>
+
+      <defs>
+        <marker id="arr-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+          <path d="M2,2 L8,5 L2,8" fill="none" stroke="#4ab3ff" stroke-width="1.5" stroke-linecap="round"/>
+        </marker>
+        <marker id="arr-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+          <path d="M2,2 L8,5 L2,8" fill="none" stroke="#00ffaa" stroke-width="1.5" stroke-linecap="round"/>
+        </marker>
+      </defs>
+
+      <!-- ─── COORDINATE GRID LABELS ─── -->
+      <text x="10" y="500" font-family="'Share Tech Mono',monospace" font-size="8" fill="rgba(61,84,112,0.6)">28.0°N</text>
+      <text x="10" y="380" font-family="'Share Tech Mono',monospace" font-size="8" fill="rgba(61,84,112,0.6)">28.2°N</text>
+      <text x="10" y="260" font-family="'Share Tech Mono',monospace" font-size="8" fill="rgba(61,84,112,0.6)">28.4°N</text>
+      <text x="10" y="140" font-family="'Share Tech Mono',monospace" font-size="8" fill="rgba(61,84,112,0.6)">28.6°N</text>
+      <text x="180" y="518" font-family="'Share Tech Mono',monospace" font-size="8" fill="rgba(61,84,112,0.6)">76.9°E</text>
+      <text x="360" y="518" font-family="'Share Tech Mono',monospace" font-size="8" fill="rgba(61,84,112,0.6)">77.1°E</text>
+      <text x="550" y="518" font-family="'Share Tech Mono',monospace" font-size="8" fill="rgba(61,84,112,0.6)">77.3°E</text>
+
+      <!-- Operator count labels -->
+      <text x="80" y="200" font-family="'Rajdhani',sans-serif" font-size="10" fill="rgba(200,30,30,0.6)" font-weight="600" letter-spacing="1">ZONE A</text>
+      <text x="340" y="280" font-family="'Rajdhani',sans-serif" font-size="10" fill="rgba(220,100,0,0.6)" font-weight="600" letter-spacing="1">ZONE B</text>
+      <text x="580" y="280" font-family="'Rajdhani',sans-serif" font-size="10" fill="rgba(45,166,90,0.6)" font-weight="600" letter-spacing="1">ZONE C</text>
+    </svg>
+  </div>
+
+  <!-- ─── RIGHT PANEL ─── -->
+  <aside class="right-panel">
+
+    <!-- VIDEO FEED -->
+    <div class="rp-section">
+      <div class="rp-header">
+        <div class="rp-title">Live Edge AI Video</div>
+        <div class="rp-badge badge-embb">eMBB SLICE</div>
+      </div>
+      <div style="font-family:var(--mono);font-size:8px;color:var(--text-muted);margin-bottom:5px;letter-spacing:1px;">DRONE-01 · YOLO v8 DETECTION</div>
+
+      <div class="video-feed">
+        <div class="video-bg"></div>
+        <div class="video-noise"></div>
+        <div class="video-scan-line"></div>
+
+        <!-- Detection box blue (left person) -->
+        <div class="detection-box det-blue" style="left:8%;top:10%;width:30%;height:75%;">
+          <div class="det-label">PERSON: 98%</div>
+          <!-- Stick figure suggestion -->
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:.3;">
+            <svg width="40" height="70" viewBox="0 0 40 70">
+              <circle cx="20" cy="10" r="7" fill="none" stroke="#4ab3ff" stroke-width="2"/>
+              <line x1="20" y1="17" x2="20" y2="42" stroke="#4ab3ff" stroke-width="2"/>
+              <line x1="10" y1="25" x2="30" y2="25" stroke="#4ab3ff" stroke-width="2"/>
+              <line x1="20" y1="42" x2="12" y2="60" stroke="#4ab3ff" stroke-width="2"/>
+              <line x1="20" y1="42" x2="28" y2="60" stroke="#4ab3ff" stroke-width="2"/>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Detection box green (right person) -->
+        <div class="detection-box det-green" style="right:6%;top:8%;width:28%;height:70%;">
+          <div class="det-label">PERSON: 98%</div>
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:.25;">
+            <svg width="35" height="65" viewBox="0 0 35 65">
+              <circle cx="17" cy="9" r="6" fill="none" stroke="#3ddc84" stroke-width="2"/>
+              <line x1="17" y1="15" x2="17" y2="38" stroke="#3ddc84" stroke-width="2"/>
+              <line x1="8" y1="22" x2="26" y2="22" stroke="#3ddc84" stroke-width="2"/>
+              <line x1="17" y1="38" x2="10" y2="55" stroke="#3ddc84" stroke-width="2"/>
+              <line x1="17" y1="38" x2="24" y2="55" stroke="#3ddc84" stroke-width="2"/>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Debris background hint -->
+        <div style="position:absolute;bottom:0;left:0;right:0;height:25%;background:linear-gradient(transparent,rgba(20,40,10,0.6));"></div>
+        <svg style="position:absolute;bottom:5px;left:5%;right:5%;height:20%;opacity:.25" viewBox="0 0 200 30">
+          <rect x="10" y="5" width="30" height="20" rx="2" fill="#3d5470" transform="rotate(-8 25 15)"/>
+          <rect x="50" y="8" width="50" height="15" rx="1" fill="#2d4460" transform="rotate(3 75 15)"/>
+          <rect x="110" y="4" width="25" height="22" rx="2" fill="#3d5470" transform="rotate(-5 122 15)"/>
+          <rect x="145" y="9" width="40" height="14" rx="1" fill="#2d4460" transform="rotate(6 165 16)"/>
+        </svg>
+
+        <!-- Corners -->
+        <div class="video-corner vc-tl"></div>
+        <div class="video-corner vc-tr"></div>
+        <div class="video-corner vc-bl"></div>
+        <div class="video-corner vc-br"></div>
+
+        <div class="feed-label">● REC</div>
+        <div class="video-info">
+          <span id="vid-time">10:48:32</span>
+          <span>1080p · 60fps</span>
+          <span>5G eMBB</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CRITICAL ALERTS -->
+    <div class="rp-section">
+      <div class="rp-header">
+        <div class="rp-title">Critical Alerts Log</div>
+        <div class="rp-badge badge-urllc">URLLC SLICE</div>
+      </div>
+
+      <div class="alerts-log" id="alerts-log">
+        <div class="alert-item critical">
+          <div class="alert-indicator ai-red" style="animation:blink 1s step-start infinite;"></div>
+          <div>
+            <div class="alert-text">Survivor Found · <span style="color:var(--danger)">CRITICAL</span></div>
+            <div class="alert-source">Drone-02 · Zone A · Conf 96%</div>
+          </div>
+          <div class="alert-time">10:45</div>
+        </div>
+        <div class="alert-item warning">
+          <div class="alert-indicator ai-orange"></div>
+          <div>
+            <div class="alert-text">RedCap SOS Signal</div>
+            <div class="alert-source">Z-4 · Zone C · Signal Strong</div>
+          </div>
+          <div class="alert-time">10:46</div>
+        </div>
+        <div class="alert-item info">
+          <div class="alert-indicator ai-blue"></div>
+          <div>
+            <div class="alert-text">Hazard Change Detected</div>
+            <div class="alert-source">Zone C · Flood level +0.3m</div>
+          </div>
+          <div class="alert-time">10:48</div>
+        </div>
+        <div class="alert-item critical" id="live-alert" style="display:none">
+          <div class="alert-indicator ai-red" style="animation:blink 0.8s step-start infinite;"></div>
+          <div>
+            <div class="alert-text">New Survivor Detected</div>
+            <div class="alert-source">Drone-01 · Zone B · Conf 89%</div>
+          </div>
+          <div class="alert-time" id="live-alert-time">10:49</div>
+        </div>
+      </div>
+
+      <div class="alerts-filter">
+        <span class="filter-label">FILTER:</span>
+        <select class="filter-select" onchange="filterAlerts(this.value)">
+          <option>Severity: Critical</option>
+          <option>Severity: All</option>
+          <option>Source: Drone</option>
+          <option>Source: RedCap</option>
+          <option>Zone: A</option>
+          <option>Zone: B</option>
+          <option>Zone: C</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- RESOURCE OVERVIEW -->
+    <div class="rp-section">
+      <div class="rp-header">
+        <div class="rp-title">Resource Overview</div>
+        <div class="rp-badge badge-mmtc">mMTC SLICE</div>
+      </div>
+
+      <div class="resources-grid">
+        <!-- Drones Active -->
+        <div class="res-card">
+          <div class="res-card-title">Drones Active</div>
+          <table class="res-table">
+            <tr>
+              <th>✈</th><th>👤</th><th>⊞</th>
+            </tr>
+            <tr>
+              <td id="d-drones">3</td>
+              <td id="d-persons" class="zero">0</td>
+              <td class="zero">0</td>
+            </tr>
+          </table>
+        </div>
+
+        <!-- Responders Deployed -->
+        <div class="res-card">
+          <div class="res-card-title">Responders</div>
+          <table class="res-table">
+            <tr>
+              <th>✈</th><th>👤</th><th>⊞</th>
+            </tr>
+            <tr>
+              <td style="color:var(--info)">27</td>
+              <td style="color:var(--info)">23</td>
+              <td class="zero">0</td>
+            </tr>
+          </table>
+        </div>
+
+        <!-- Wearables -->
+        <div class="res-card" style="grid-column:1/-1">
+          <div class="res-card-title" style="margin-bottom:4px;">Wearables Connected (RedCap)</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div>
+              <table class="res-table" style="width:100%">
+                <tr><th>✈</th><th>👤</th><th>⊞</th></tr>
+                <tr>
+                  <td style="color:var(--accent);font-size:11px;">Rnds</td>
+                  <td style="color:var(--accent);font-size:13px;" id="wearable-rns">13</td>
+                  <td class="zero" style="font-size:10px;">-</td>
+                </tr>
+                <tr>
+                  <td style="color:var(--text-muted);font-size:11px;">Runs</td>
+                  <td style="color:var(--accent);font-size:13px;" id="wearable-runs">11</td>
+                  <td class="zero" style="font-size:10px;">-</td>
+                </tr>
+              </table>
+            </div>
+            <div>
+              <div style="font-family:var(--mono);font-size:8px;color:var(--text-muted);margin-bottom:4px;">SLICE CONGESTION</div>
+              <div class="slice-chart" id="slice-chart">
+                <!-- bars filled by JS -->
+              </div>
+              <div class="chart-limit" style="bottom:24px;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NETWORK SLICES -->
+    <div class="rp-section" style="border-bottom:none;">
+      <div class="rp-header">
+        <div class="rp-title">5G Slice Status</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 8px;background:var(--bg-card);border-radius:4px;border:1px solid var(--border);">
+          <span style="font-family:var(--mono);font-size:9px;color:var(--info);">eMBB</span>
+          <div style="flex:1;margin:0 8px;height:4px;background:rgba(26,46,72,0.8);border-radius:2px;overflow:hidden;">
+            <div style="height:100%;width:72%;background:var(--info);border-radius:2px;transition:width .5s;" id="embb-bar"></div>
+          </div>
+          <span style="font-family:var(--mono);font-size:9px;color:var(--info);" id="embb-val">72%</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 8px;background:var(--bg-card);border-radius:4px;border:1px solid var(--border);">
+          <span style="font-family:var(--mono);font-size:9px;color:var(--warn);">URLLC</span>
+          <div style="flex:1;margin:0 8px;height:4px;background:rgba(26,46,72,0.8);border-radius:2px;overflow:hidden;">
+            <div style="height:100%;width:45%;background:var(--warn);border-radius:2px;transition:width .5s;" id="urllc-bar"></div>
+          </div>
+          <span style="font-family:var(--mono);font-size:9px;color:var(--warn);" id="urllc-val">45%</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 8px;background:var(--bg-card);border-radius:4px;border:1px solid var(--border);">
+          <span style="font-family:var(--mono);font-size:9px;color:var(--accent);">mMTC</span>
+          <div style="flex:1;margin:0 8px;height:4px;background:rgba(26,46,72,0.8);border-radius:2px;overflow:hidden;">
+            <div style="height:100%;width:58%;background:var(--accent);border-radius:2px;transition:width .5s;" id="mmtc-bar"></div>
+          </div>
+          <span style="font-family:var(--mono);font-size:9px;color:var(--accent);" id="mmtc-val">58%</span>
+        </div>
+      </div>
+    </div>
+
+  </aside>
+</div>
+
+<!-- ─── STATUS BAR ─── -->
+<div class="status-bar">
+  <div class="sb-item">
+    <div class="sb-dot" style="background:var(--safe);box-shadow:0 0 4px var(--safe);"></div>
+    <span>SYSTEM NOMINAL</span>
+  </div>
+  <div class="sb-item">
+    <div class="sb-dot" style="background:var(--info);animation:blink 1.5s step-start infinite;"></div>
+    <span>5G SLICES ACTIVE</span>
+  </div>
+  <div class="sb-item">
+    <div class="sb-dot" style="background:var(--warn);animation:blink 1s step-start infinite;"></div>
+    <span id="alert-count">3 ACTIVE ALERTS</span>
+  </div>
+  <div class="sb-item" style="margin-left:auto;">
+    <span style="color:var(--text-muted);">SURVIVORS LOCATED:</span>
+    <span style="color:var(--accent);margin-left:4px;" id="survivor-count">4</span>
+  </div>
+  <div class="sb-item">
+    <span style="color:var(--text-muted);">SECTOR:</span>
+    <span style="color:var(--text-secondary);margin-left:4px;">28.3°N 77.1°E</span>
+  </div>
+  <div class="sb-item">
+    <span style="color:var(--text-muted);">BUILD:</span>
+    <span style="color:var(--text-muted);margin-left:4px;">v2.4.1-SANDBOX</span>
+  </div>
+</div>
+
+<!-- Tooltip -->
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+// Clock
+function updateClock(){
+  const now=new Date();
+  document.getElementById('clock').textContent=
+    String(now.getHours()).padStart(2,'0')+':'+
+    String(now.getMinutes()).padStart(2,'0')+':'+
+    String(now.getSeconds()).padStart(2,'0');
+  const base=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+  document.getElementById('vid-time').textContent=base;
+}
+setInterval(updateClock,1000);updateClock();
+
+// Nav
+function setNav(el){
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// Tooltip
+function showTooltip(e,title,detail){
+  const t=document.getElementById('tooltip');
+  t.innerHTML=`<div style="color:var(--accent);font-weight:700;margin-bottom:3px;">${title}</div><div style="color:var(--text-secondary);">${detail}</div>`;
+  t.style.display='block';
+  t.style.left=(e.clientX+12)+'px';
+  t.style.top=(e.clientY-10)+'px';
+  setTimeout(()=>t.style.display='none',2500);
+}
+document.addEventListener('mousemove',e=>{
+  const t=document.getElementById('tooltip');
+  if(t.style.display==='block'){
+    t.style.left=(e.clientX+12)+'px';
+    t.style.top=(e.clientY-10)+'px';
+  }
+});
+
+// Filter
+function filterAlerts(v){
+  console.log('Filter:',v);
+}
+
+// Slice chart bars
+function buildSliceChart(){
+  const chart=document.getElementById('slice-chart');
+  const vals=[0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,0.85,0.75,0.65,0.7,0.8,0.9,0.95,1.0,0.88];
+  chart.innerHTML='';
+  vals.forEach(v=>{
+    const bar=document.createElement('div');
+    bar.className='chart-bar'+(v>0.85?' high':'');
+    bar.style.height=Math.round(v*36)+'px';
+    chart.appendChild(bar);
+  });
+}
+buildSliceChart();
+
+// Live updates
+let alertCount=3;
+let survivorCount=4;
+
+setInterval(()=>{
+  // Latency flicker
+  const lat=(3.5+Math.random()*2).toFixed(1);
+  document.getElementById('latency').textContent=lat+'ms';
+
+  // Slice bars
+  const embb=Math.round(65+Math.random()*20);
+  const urllc=Math.round(38+Math.random()*20);
+  const mmtc=Math.round(50+Math.random()*20);
+  document.getElementById('embb-bar').style.width=embb+'%';
+  document.getElementById('urllc-bar').style.width=urllc+'%';
+  document.getElementById('mmtc-bar').style.width=mmtc+'%';
+  document.getElementById('embb-val').textContent=embb+'%';
+  document.getElementById('urllc-val').textContent=urllc+'%';
+  document.getElementById('mmtc-val').textContent=mmtc+'%';
+
+  // Wearables
+  const rns=Math.round(11+Math.random()*4);
+  const runs=Math.round(9+Math.random()*4);
+  document.getElementById('wearable-rns').textContent=rns;
+  document.getElementById('wearable-runs').textContent=runs;
+
+  // Rebuild chart
+  buildSliceChart();
+},3000);
+
+// New alert after 8 seconds
+setTimeout(()=>{
+  alertCount++;
+  survivorCount++;
+  const now=new Date();
+  const t=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  document.getElementById('live-alert-time').textContent=t;
+  document.getElementById('live-alert').style.display='flex';
+  document.getElementById('alert-count').textContent=alertCount+' ACTIVE ALERTS';
+  document.getElementById('survivor-count').textContent=survivorCount;
+},8000);
+
+// Periodic survivor count updates
+setInterval(()=>{
+  document.getElementById('d-drones').textContent=Math.round(2+Math.random()*2);
+},5000);
+</script>
+</body>
+</html>
