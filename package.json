@@ -1,0 +1,16 @@
+{
+  "name": "resqnet-x",
+  "version": "1.0.0",
+  "description": "AI-Powered 5G Edge Intelligence Disaster Response Dashboard",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js",
+    "lint": "echo 'No lint script required'",
+    "build": "echo 'No build step required'"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}

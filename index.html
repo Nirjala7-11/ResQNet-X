@@ -293,11 +293,40 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 /* MODAL OVERLAY */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;display:none;align-items:center;justify-content:center;}
 .modal-overlay.open{display:flex;}
-.modal{background:var(--bg-panel);border:1px solid var(--border-bright);border-radius:6px;padding:20px;width:560px;max-height:80vh;overflow-y:auto;}
+.modal{background:var(--bg-panel);border:1px solid var(--border-bright);border-radius:6px;padding:20px;width:560px;max-height:85vh;overflow-y:auto;box-shadow:0 10px 40px rgba(0,0,0,0.8);}
+.modal-lg{width:740px;}
 .modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);}
 .modal-title{font-family:var(--head);font-size:15px;font-weight:700;letter-spacing:1.5px;color:var(--text-primary);text-transform:uppercase;}
-.modal-close{font-family:var(--mono);font-size:14px;color:var(--text-muted);cursor:pointer;padding:4px 8px;border-radius:3px;}
+.modal-close{font-family:var(--mono);font-size:14px;color:var(--text-muted);cursor:pointer;padding:4px 8px;border-radius:3px;transition:color .2s;}
 .modal-close:hover{color:var(--danger);}
+
+/* FORMAT SELECTOR & PREVIEW STYLES */
+.format-pills{display:flex;gap:8px;margin-bottom:14px;}
+.format-pill{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 8px;background:var(--bg-card);border:1px solid var(--border);border-radius:4px;cursor:pointer;transition:all .2s;}
+.format-pill:hover{background:var(--bg-card2);border-color:var(--border-bright);}
+.format-pill.active{border-color:var(--accent);background:rgba(0,255,170,0.08);box-shadow:0 0 10px rgba(0,255,170,0.15);}
+.format-pill-ext{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--text-primary);margin-bottom:2px;}
+.format-pill.active .format-pill-ext{color:var(--accent);}
+.format-pill-desc{font-family:var(--mono);font-size:8px;color:var(--text-muted);text-transform:uppercase;}
+
+.preview-container{background:var(--bg-base);border:1px solid var(--border-bright);border-radius:4px;padding:12px;max-height:280px;overflow-y:auto;font-family:var(--mono);font-size:10px;color:var(--text-primary);margin-bottom:14px;line-height:1.5;white-space:pre-wrap;}
+.preview-drone-frame{position:relative;width:100%;aspect-ratio:16/9;background:#060d19;border:1px solid var(--border-bright);border-radius:4px;overflow:hidden;margin-bottom:12px;}
+
+/* TOAST NOTIFICATION CONTAINER */
+.toast-container{position:fixed;bottom:30px;right:20px;z-index:300;display:flex;flex-direction:column;gap:8px;pointer-events:none;}
+.toast-item{pointer-events:auto;min-width:320px;max-width:420px;background:var(--bg-panel);border:1px solid var(--accent);border-left:4px solid var(--accent);border-radius:4px;padding:12px 14px;box-shadow:0 8px 30px rgba(0,0,0,0.8),0 0 15px rgba(0,255,170,0.15);display:flex;align-items:flex-start;gap:10px;animation:slideInToast .25s ease-out forwards;font-family:var(--mono);}
+.toast-item.info{border-color:var(--info);border-left-color:var(--info);box-shadow:0 8px 30px rgba(0,0,0,0.8),0 0 15px rgba(74,179,255,0.15);}
+.toast-icon{width:18px;height:18px;display:flex;align-items:center;justify-content:center;color:var(--accent);flex-shrink:0;margin-top:1px;}
+.toast-item.info .toast-icon{color:var(--info);}
+.toast-body{flex:1;}
+.toast-title{font-family:var(--head);font-size:13px;font-weight:700;letter-spacing:1px;color:var(--text-primary);text-transform:uppercase;margin-bottom:2px;}
+.toast-msg{font-size:9px;color:var(--text-secondary);line-height:1.4;margin-bottom:6px;}
+.toast-actions{display:flex;gap:8px;align-items:center;}
+.toast-link{font-size:9px;color:var(--accent);text-decoration:none;cursor:pointer;background:rgba(0,255,170,0.1);padding:3px 8px;border-radius:2px;border:1px solid rgba(0,255,170,0.3);display:inline-flex;align-items:center;gap:4px;transition:all .2s;}
+.toast-link:hover{background:rgba(0,255,170,0.25);color:#fff;}
+.toast-close{color:var(--text-muted);cursor:pointer;font-size:12px;padding:0 4px;margin-left:auto;}
+.toast-close:hover{color:var(--danger);}
+@keyframes slideInToast{from{opacity:0;transform:translateX(30px);}to{opacity:1;transform:translateX(0);}}
 
 /* SCROLLBAR */
 ::-webkit-scrollbar{width:4px;}
@@ -528,9 +557,18 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     <!-- RIGHT PANEL -->
     <aside class="right-panel">
       <div class="rp-section">
-        <div class="rp-header"><div class="rp-title">Live Edge AI Video</div><div class="rp-badge badge-embb">eMBB SLICE</div></div>
-        <div style="font-family:var(--mono);font-size:8px;color:var(--text-muted);margin-bottom:5px;letter-spacing:1px;">DRONE-01 · YOLO v8 DETECTION</div>
-        <div class="video-feed">
+        <div class="rp-header">
+          <div class="rp-title">Live Edge AI Video</div>
+          <div style="display:flex;align-items:center;gap:4px;">
+            <button class="btn-info" style="font-size:7px;padding:2px 6px;" onclick="openDroneExportModal()" title="Export Drone Feed Clip / Snapshot">⬇ EXPORT</button>
+            <div class="rp-badge badge-embb">eMBB SLICE</div>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+          <div style="font-family:var(--mono);font-size:8px;color:var(--text-muted);letter-spacing:1px;">DRONE-01 · YOLO v8 DETECTION</div>
+          <span style="font-family:var(--mono);font-size:8px;color:var(--accent);cursor:pointer;" onclick="openDroneExportModal('preview')">👁 PREVIEW</span>
+        </div>
+        <div class="video-feed" id="drone-live-feed-box" style="cursor:pointer;" onclick="openDroneExportModal('preview')">
           <div style="position:absolute;inset:0;background:linear-gradient(160deg,#0d1a2e 0%,#070e1c 50%,#0a1526 100%);"></div>
           <div class="video-scan-line"></div>
           <div class="detection-box det-blue" style="left:8%;top:10%;width:30%;height:75%;"><div class="det-label">PERSON: 98%</div></div>
@@ -715,9 +753,8 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
             <label style="display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:9px;color:var(--text-secondary);cursor:pointer;"><input type="checkbox" checked style="accent-color:var(--accent);"> NDMA Format</label>
           </div>
           <div style="margin-top:10px;display:flex;gap:6px;">
-            <button class="btn-info" style="flex:1;font-size:8px;" onclick="exportPDF()">PDF</button>
-            <button class="btn-info" style="flex:1;font-size:8px;" onclick="exportCSV()">CSV</button>
-            <button class="btn-info" style="flex:1;font-size:8px;" onclick="exportJSON()">JSON</button>
+            <button class="btn-primary" style="flex:1;font-size:8px;" onclick="openExportModal('report', selectedTemplate)">⬇ EXPORT...</button>
+            <button class="btn-info" style="flex:1;font-size:8px;" onclick="previewCurrentTemplate()">👁 PREVIEW</button>
           </div>
         </div>
       </div>
@@ -787,6 +824,124 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     </div>
   </div>
 </div>
+
+<!-- MODAL: Export Report & Preview Dialog -->
+<div class="modal-overlay" id="export-report-modal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="export-modal-title">Export Tactical Report</div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--text-muted);margin-top:2px;" id="export-modal-subtitle">Configure format, inspect payload preview, and download</div>
+      </div>
+      <div class="modal-close" onclick="closeModal('export-report-modal')">✕</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div>
+        <div class="df-label" style="margin-bottom:6px;">Select Export Format</div>
+        <div class="format-pills" id="report-format-pills">
+          <div class="format-pill active" onclick="selectReportFormat('pdf', this)">
+            <span class="format-pill-ext">📄 PDF</span>
+            <span class="format-pill-desc">NDMA Formatted Document</span>
+          </div>
+          <div class="format-pill" onclick="selectReportFormat('csv', this)">
+            <span class="format-pill-ext">📊 CSV</span>
+            <span class="format-pill-desc">Structured Geospatial Data</span>
+          </div>
+          <div class="format-pill" onclick="selectReportFormat('json', this)">
+            <span class="format-pill-ext">{ } JSON</span>
+            <span class="format-pill-desc">Raw Machine Telemetry</span>
+          </div>
+          <div class="format-pill" onclick="selectReportFormat('txt', this)">
+            <span class="format-pill-ext">📝 TXT</span>
+            <span class="format-pill-desc">Plaintext SITREP Log</span>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <span class="df-label">Live Content Preview (<span id="export-preview-format">PDF / PRINT READY</span>)</span>
+          <span style="font-family:var(--mono);font-size:8px;color:var(--accent);" id="export-filesize">~48.5 KB</span>
+        </div>
+        <div class="preview-container" id="report-preview-box">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <div class="form-actions" style="margin-top:0;">
+        <button class="btn-primary" style="flex:1;" id="export-download-btn" onclick="executeReportExport()">⬇ DOWNLOAD REPORT FILE</button>
+        <button class="btn-info" onclick="printReportPreview()">🖨 PRINT / SAVE AS PDF</button>
+        <button class="btn-danger" onclick="closeModal('export-report-modal')">CLOSE</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Export Drone Feed Clip / Snapshot -->
+<div class="modal-overlay" id="export-drone-modal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">Export Live Drone Feed</div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--text-muted);margin-top:2px;">Drone-01 · 5G eMBB 1080p 60fps · Edge AI Bounding Overlay</div>
+      </div>
+      <div class="modal-close" onclick="closeModal('export-drone-modal')">✕</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div>
+        <div class="df-label" style="margin-bottom:6px;">Select Feed Export Type</div>
+        <div class="format-pills" id="drone-format-pills">
+          <div class="format-pill active" onclick="selectDroneFormat('mp4', this)">
+            <span class="format-pill-ext">🎥 MP4</span>
+            <span class="format-pill-desc">30s Video Feed Clip</span>
+          </div>
+          <div class="format-pill" onclick="selectDroneFormat('webm', this)">
+            <span class="format-pill-ext">📼 WEBM</span>
+            <span class="format-pill-desc">Low-Latency Stream Clip</span>
+          </div>
+          <div class="format-pill" onclick="selectDroneFormat('png', this)">
+            <span class="format-pill-ext">🖼 PNG</span>
+            <span class="format-pill-desc">Hi-Res AI Overlay Frame</span>
+          </div>
+          <div class="format-pill" onclick="selectDroneFormat('json', this)">
+            <span class="format-pill-ext">{ } METRICS</span>
+            <span class="format-pill-desc">YOLO Detections & BBoxes</span>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <span class="df-label">Live Frame & Overlay Preview</span>
+          <span style="font-family:var(--mono);font-size:8px;color:var(--accent);" id="drone-export-info">1920x1080 · YOLO v8 Active</span>
+        </div>
+        <div class="preview-drone-frame" id="drone-feed-preview-area">
+          <div style="position:absolute;inset:0;background:linear-gradient(160deg,#0d1a2e 0%,#070e1c 50%,#0a1526 100%);"></div>
+          <div class="video-scan-line"></div>
+          <div class="detection-box det-blue" style="left:8%;top:10%;width:30%;height:75%;"><div class="det-label">PERSON: 98% (ZONE B)</div></div>
+          <div class="detection-box det-green" style="right:6%;top:8%;width:28%;height:70%;"><div class="det-label">PERSON: 98% (SAFE)</div></div>
+          <div class="video-corner vc-tl"></div><div class="video-corner vc-tr"></div>
+          <div class="video-corner vc-bl"></div><div class="video-corner vc-br"></div>
+          <div class="feed-label" style="top:8px;left:8px;">● LIVE RECORDING BUFFER</div>
+          <div class="video-info" style="bottom:8px;left:10px;right:10px;">
+            <span id="drone-modal-time">10:48:32</span>
+            <span>Drone-01 · Lat: 28.312°N Lon: 77.021°E</span>
+            <span>5G eMBB 850Mbps</span>
+          </div>
+        </div>
+        <div class="preview-container" id="drone-json-preview-box" style="display:none;max-height:160px;"></div>
+      </div>
+
+      <div class="form-actions" style="margin-top:0;">
+        <button class="btn-primary" style="flex:1;" id="drone-download-btn" onclick="executeDroneExport()">⬇ EXPORT &amp; DOWNLOAD FEED</button>
+        <button class="btn-danger" onclick="closeModal('export-drone-modal')">CANCEL</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toast-container"></div>
 
 <!-- MODAL: Settings -->
 <div class="modal-overlay" id="settings-modal">
@@ -1198,11 +1353,397 @@ function generateReport(){
   }
 }
 
-function viewReport(title){alert(`Opening report viewer for:\n${title}\n\n(In production: opens PDF viewer with full NDMA-formatted report)`);}
-function downloadReport(title){alert(`Downloading: ${title}.pdf\n\n(In production: triggers server-side PDF generation and download)`);}
-function exportPDF(){alert('Exporting selected report as PDF in NDMA format...\n\n(In production: triggers PDF generation pipeline)');}
-function exportCSV(){alert('Exporting incident log as CSV...\n\n(In production: generates structured CSV for NDMA submission)');}
-function exportJSON(){alert('Exporting full session data as JSON...\n\n(In production: exports complete operational data bundle)');}
+// ═══ EXPORT & PREVIEW ENGINE ═══
+let currentExportType = 'report'; // 'report' or 'drone'
+let currentExportReportTitle = '';
+let currentExportFormat = 'pdf'; // 'pdf', 'csv', 'json', 'txt'
+let currentDroneFormat = 'mp4'; // 'mp4', 'webm', 'png', 'json'
+let lastExportedFileUrl = '';
+let lastExportedFileName = '';
+
+function showToast(title, message, fileUrl, fileName) {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+  const id = 'toast-' + Date.now();
+  const toast = document.createElement('div');
+  toast.className = 'toast-item';
+  toast.id = id;
+  toast.innerHTML = `
+    <div class="toast-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+    </div>
+    <div class="toast-body">
+      <div class="toast-title">${title}</div>
+      <div class="toast-msg">${message}</div>
+      <div class="toast-actions">
+        <a class="toast-link" href="${fileUrl}" download="${fileName}" onclick="event.stopPropagation()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Open / Download File (${fileName.split('.').pop().toUpperCase()})
+        </a>
+      </div>
+    </div>
+    <div class="toast-close" onclick="this.parentElement.remove()">✕</div>
+  `;
+  container.appendChild(toast);
+  setTimeout(() => { if (toast.parentElement) toast.remove(); }, 9000);
+}
+
+function openExportModal(type, target) {
+  currentExportType = type;
+  if (type === 'report') {
+    if (typeof target === 'string' && target.startsWith('T')) {
+      const tmpl = TEMPLATES.find(x => x.id === target) || TEMPLATES[0];
+      currentExportReportTitle = tmpl.name;
+      document.getElementById('export-modal-title').textContent = `Export: ${tmpl.name}`;
+      document.getElementById('export-modal-subtitle').textContent = `${tmpl.desc} · NDMA Standard`;
+    } else {
+      currentExportReportTitle = target || (REPORTS_GENERATED[0] ? REPORTS_GENERATED[0].title : 'SITREP-2026-042');
+      document.getElementById('export-modal-title').textContent = `Export Report: ${currentExportReportTitle}`;
+      document.getElementById('export-modal-subtitle').textContent = `National Disaster Response Portal · Encrypted 5G Export`;
+    }
+    updateReportPreview();
+    document.getElementById('export-report-modal').classList.add('open');
+  } else if (type === 'drone') {
+    openDroneExportModal();
+  }
+}
+
+function previewCurrentTemplate() {
+  openExportModal('report', selectedTemplate);
+}
+
+function viewReport(title) {
+  openExportModal('report', title);
+}
+
+function downloadReport(title) {
+  openExportModal('report', title);
+}
+
+function selectReportFormat(fmt, el) {
+  currentExportFormat = fmt;
+  document.querySelectorAll('#report-format-pills .format-pill').forEach(p => p.classList.remove('active'));
+  if (el) el.classList.add('active');
+  updateReportPreview();
+}
+
+function getReportPayload(format) {
+  const now = new Date();
+  const dateStr = now.toISOString().slice(0, 10);
+  const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+  const title = currentExportReportTitle || 'RESQNET-SITREP-2026';
+  
+  if (format === 'json') {
+    return JSON.stringify({
+      resqnet_version: "2.4.1-SANDBOX",
+      organization: "National Disaster Management Authority (NDMA)",
+      telecom_partner: "Department of Telecommunications (DoT) 100 5G Labs",
+      report_title: title,
+      generated_at: `${dateStr}T${timeStr}Z`,
+      sector: "28.3°N 77.1°E",
+      network_slice_telemetry: {
+        eMBB_throughput_mbps: 840,
+        urllc_latency_ms: +(document.getElementById('latency') ? document.getElementById('latency').textContent.replace('ms','') : 4.2),
+        mmtc_connected_devices: 24,
+        uptime_pct: 99.97
+      },
+      tactical_summary: {
+        survivors_located: survivorCount,
+        critical_alerts_active: alertCount,
+        active_missions: MISSIONS.filter(m => m.status === 'active').length,
+        drones_airborne: 3
+      },
+      missions: MISSIONS,
+      incident_logs: INCIDENTS
+    }, null, 2);
+  } else if (format === 'csv') {
+    let csv = "ID,NAME,TYPE,PRIORITY,STATUS,ZONE,COORDINATES,PROGRESS_PCT,START_TIME,ETA,DRONES,RESPONDERS\n";
+    MISSIONS.forEach(m => {
+      csv += `"${m.id}","${m.name}","${m.type}","${m.priority}","${m.status}","${m.zone}","${m.coords}","${m.progress}%","${m.start}","${m.eta}","${m.drones.join(';')}","${m.responders}"\n`;
+    });
+    csv += "\nINCIDENT_LOGS\nTIMESTAMP,TITLE,SEVERITY_COLOR,DETAILS\n";
+    INCIDENTS.forEach(i => {
+      csv += `"${i.t}","${i.title}","${i.c}","${i.desc}"\n`;
+    });
+    return csv;
+  } else if (format === 'txt') {
+    return `========================================================================
+RESQNET-X NATIONAL DISASTER RESPONSE SITUATION REPORT
+GOVERNMENT OF INDIA · NDMA / DoT 5G EXPERIMENTAL SANDBOX
+========================================================================
+Report Document : ${title}
+Timestamp       : ${dateStr} ${timeStr} UTC+05:30
+Geographic Grid : 28.3°N, 77.1°E (Zone A / Zone B / Zone C)
+System Status   : SYSTEM NOMINAL · 5G SLICES (eMBB / URLLC / mMTC) ACTIVE
+
+--- EXECUTIVE OPERATIONAL METRICS ---
+• Confirmed Survivors Located : ${survivorCount}
+• Active Critical Alerts      : ${alertCount}
+• URLLC Latency               : ${document.getElementById('latency') ? document.getElementById('latency').textContent : '4.2ms'}
+• Active Slices               : eMBB (840 Mbps), URLLC (<5ms), mMTC (24 IoT Beacons)
+• Airborne Edge AI Drones     : Drone-01 (YOLO v8), Drone-02, Drone-03
+
+--- ACTIVE DEPLOYED MISSIONS ---
+${MISSIONS.map(m => `[${m.id}] ${m.name.padEnd(28)} | ${m.priority.padEnd(8)} | Zone: ${m.zone.padEnd(8)} | Progress: ${String(m.progress).padStart(3)}% | Status: ${m.status.toUpperCase()}`).join('\n')}
+
+--- RECENT INCIDENT CHRONOLOGY ---
+${INCIDENTS.map(i => `[${i.t}] ${i.title.padEnd(30)} : ${i.desc}`).join('\n')}
+
+========================================================================
+Authorized by: ResQNet-X Autonomous C2 Engine (NDMA Validated)
+========================================================================`;
+  } else {
+    // PDF text / formatted representation
+    return `╔══════════════════════════════════════════════════════════════════════╗
+║  RESQNET-X NATIONAL DISASTER RESPONSE · NDMA TACTICAL SITREP         ║
+║  DOCUMENT ID: ${title.padEnd(52)} ║
+║  GEN TIME   : ${dateStr} ${timeStr} IST          SECTOR: 28.3°N 77.1°E ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+[1] 5G EDGE INTELLIGENCE & SLICING TELEMETRY:
+    • eMBB Live Video Feed     : 1080p@60fps YOLO v8 AI Real-Time Stream
+    • URLLC Mission-Critical   : Latency ${document.getElementById('latency') ? document.getElementById('latency').textContent : '4.2ms'} (Target <5ms)
+    • mMTC Survivor Wearables  : 24 RedCap Smart Beacons Tracked
+    • GNN Path Optimization    : Active Route Corridor via Zone B Safe Waypoint
+
+[2] SURVIVOR & CASUALTY SITUATION:
+    • Total Survivors Located  : ${survivorCount} Confirmed
+    • High Risk Extractions    : 2 in Progress (MSN-001 & MSN-005)
+    • AI Model Confidence      : YOLO v8 Avg 94.2% | DeepSORT Track: Nominal
+
+[3] DISASTER OPERATION ROSTER:
+${MISSIONS.map(m => `    • ${m.id} [${m.priority.toUpperCase()}] ${m.name} -> ${m.zone} (${m.progress}% Complete)`).join('\n')}
+
+[4] VERIFICATION & AUTHENTICATION:
+    Digital Signature: SHA256:${Array.from({length:32},()=>Math.floor(Math.random()*16).toString(16)).join('')}
+    NDMA Secure Gateway · Ready for Export & Print`;
+  }
+}
+
+function updateReportPreview() {
+  const box = document.getElementById('report-preview-box');
+  const formatLabel = document.getElementById('export-preview-format');
+  const sizeLabel = document.getElementById('export-filesize');
+  const downloadBtn = document.getElementById('export-download-btn');
+  if (!box) return;
+  
+  const payload = getReportPayload(currentExportFormat);
+  box.textContent = payload;
+  
+  const byteLength = new Blob([payload]).size;
+  const approxSize = (byteLength / 1024).toFixed(1) + ' KB';
+  if (sizeLabel) sizeLabel.textContent = `~${approxSize}`;
+  if (formatLabel) formatLabel.textContent = `${currentExportFormat.toUpperCase()} / READY`;
+  if (downloadBtn) downloadBtn.textContent = `⬇ DOWNLOAD REPORT (${currentExportFormat.toUpperCase()})`;
+}
+
+function executeReportExport() {
+  const content = getReportPayload(currentExportFormat);
+  const now = new Date();
+  const timeStamp = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}`;
+  const cleanTitle = (currentExportReportTitle || 'RESQNET_SITREP').replace(/[^a-zA-Z0-9_-]/g, '_');
+  const fileName = `${cleanTitle}_${timeStamp}.${currentExportFormat}`;
+  
+  let mime = 'text/plain';
+  if (currentExportFormat === 'json') mime = 'application/json';
+  else if (currentExportFormat === 'csv') mime = 'text/csv';
+  else if (currentExportFormat === 'pdf') mime = 'application/pdf';
+
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  lastExportedFileUrl = url;
+  lastExportedFileName = fileName;
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+
+  closeModal('export-report-modal');
+  showToast(
+    'Report Exported Successfully',
+    `File <b>${fileName}</b> generated and saved to your device download folder.`,
+    url,
+    fileName
+  );
+}
+
+function printReportPreview() {
+  const content = getReportPayload('txt');
+  const printWindow = window.open('', '_blank');
+  if (printWindow) {
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>${currentExportReportTitle || 'RESQNET-X SITREP'}</title>
+          <style>
+            body { font-family: monospace; padding: 25px; background: #fff; color: #000; line-height: 1.4; white-space: pre-wrap; }
+          </style>
+        </head>
+        <body>${content}</body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => { printWindow.print(); }, 250);
+  } else {
+    executeReportExport();
+  }
+}
+
+// ═══ DRONE FEED EXPORT ═══
+function openDroneExportModal(mode) {
+  const clockEl = document.getElementById('clock');
+  const modalTime = document.getElementById('drone-modal-time');
+  if (clockEl && modalTime) modalTime.textContent = clockEl.textContent;
+  updateDronePreview();
+  document.getElementById('export-drone-modal').classList.add('open');
+}
+
+function selectDroneFormat(fmt, el) {
+  currentDroneFormat = fmt;
+  document.querySelectorAll('#drone-format-pills .format-pill').forEach(p => p.classList.remove('active'));
+  if (el) el.classList.add('active');
+  updateDronePreview();
+}
+
+function updateDronePreview() {
+  const feedArea = document.getElementById('drone-feed-preview-area');
+  const jsonBox = document.getElementById('drone-json-preview-box');
+  const info = document.getElementById('drone-export-info');
+  const downloadBtn = document.getElementById('drone-download-btn');
+  
+  if (currentDroneFormat === 'json') {
+    feedArea.style.display = 'none';
+    jsonBox.style.display = 'block';
+    const jsonPayload = JSON.stringify({
+      drone_id: "DRONE-01-ALPHA",
+      stream_source: "5G eMBB Slicing 1000Mbps",
+      resolution: "1920x1080@60fps",
+      fov: "84 deg",
+      altitude_m: 124.5,
+      gps: { lat: 28.31204, lon: 77.02115 },
+      yolo_v8_detections: [
+        { class: "person", confidence: 0.982, bbox: [154, 108, 576, 810], zone: "Zone B", thermal_signature_c: 36.8 },
+        { class: "person", confidence: 0.978, bbox: [1380, 86, 1720, 756], zone: "Zone C", thermal_signature_c: 37.1 }
+      ],
+      hazard_alerts: ["Flood boundary proximity 15m"]
+    }, null, 2);
+    jsonBox.textContent = jsonPayload;
+    if (info) info.textContent = `YOLO JSON Telemetry (~2.1 KB)`;
+  } else {
+    feedArea.style.display = 'block';
+    jsonBox.style.display = 'none';
+    if (info) {
+      if (currentDroneFormat === 'mp4') info.textContent = `1080p 60fps MP4 Video Buffer (~14.2 MB)`;
+      else if (currentDroneFormat === 'webm') info.textContent = `1080p 60fps WebM Ultra-Low Latency (~10.8 MB)`;
+      else if (currentDroneFormat === 'png') info.textContent = `1920x1080 Hi-Res Raw AI Snapshot (~3.4 MB)`;
+    }
+  }
+  if (downloadBtn) {
+    downloadBtn.textContent = `⬇ EXPORT & DOWNLOAD FEED (${currentDroneFormat.toUpperCase()})`;
+  }
+}
+
+function executeDroneExport() {
+  const now = new Date();
+  const timeStamp = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}`;
+  const fileName = `DRONE01_FEED_ZONE_B_${timeStamp}.${currentDroneFormat}`;
+  
+  let blob;
+  if (currentDroneFormat === 'json') {
+    const data = document.getElementById('drone-json-preview-box').textContent;
+    blob = new Blob([data], { type: 'application/json' });
+  } else if (currentDroneFormat === 'png') {
+    // Generate a high resolution simulated canvas snapshot
+    const canvas = document.createElement('canvas');
+    canvas.width = 1280;
+    canvas.height = 720;
+    const ctx = canvas.getContext('2d');
+    
+    // Background gradient
+    const grad = ctx.createLinearGradient(0, 0, 1280, 720);
+    grad.addColorStop(0, '#0a1424');
+    grad.addColorStop(0.5, '#070e1a');
+    grad.addColorStop(1, '#050912');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 1280, 720);
+    
+    // Grid lines
+    ctx.strokeStyle = 'rgba(26,46,72,0.4)';
+    ctx.lineWidth = 1;
+    for (let x = 0; x < 1280; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 720); ctx.stroke(); }
+    for (let y = 0; y < 720; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(1280, y); ctx.stroke(); }
+    
+    // Bounding Box 1
+    ctx.strokeStyle = '#4ab3ff';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(100, 80, 380, 540);
+    ctx.fillStyle = '#4ab3ff';
+    ctx.font = '16px monospace';
+    ctx.fillText('PERSON: 98% (ZONE B) · THERMAL: 36.8°C', 100, 70);
+    
+    // Bounding Box 2
+    ctx.strokeStyle = '#3ddc84';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(780, 60, 360, 520);
+    ctx.fillStyle = '#3ddc84';
+    ctx.fillText('PERSON: 98% (SAFE CORRIDOR) · THERMAL: 37.1°C', 780, 50);
+    
+    // HUD Watermark
+    ctx.fillStyle = '#00ffaa';
+    ctx.font = 'bold 20px sans-serif';
+    ctx.fillText('RESQNET-X DRONE-01 · LIVE 5G eMBB FEED', 30, 40);
+    ctx.font = '14px monospace';
+    ctx.fillText(`TIMESTAMP: ${now.toISOString()} | GPS: 28.312°N 77.021°E | 1080p 60fps`, 30, 690);
+
+    canvas.toBlob((b) => {
+      const url = URL.createObjectURL(b);
+      triggerDownload(url, fileName);
+    }, 'image/png');
+    closeModal('export-drone-modal');
+    return;
+  } else {
+    // MP4 or WebM simulated media file buffer
+    const mockContent = `RESQNET-X 5G eMBB HIGH DEFINITION VIDEO FEED STREAM RECORDING
+DRONE ID: DRONE-01-ALPHA
+RESOLUTION: 1920x1080 60FPS H.265/HEVC ENCODED
+LOCATION: 28.3°N 77.1°E ZONE B SECTOR
+DETECTIONS: 2 SURVIVORS FLAGGED (CONF: 98%)
+TIMESTAMP: ${now.toISOString()}
+NDMA C2 MISSION VALIDATED`;
+    blob = new Blob([mockContent], { type: currentDroneFormat === 'mp4' ? 'video/mp4' : 'video/webm' });
+  }
+
+  const url = URL.createObjectURL(blob);
+  triggerDownload(url, fileName);
+  closeModal('export-drone-modal');
+}
+
+function triggerDownload(url, fileName) {
+  lastExportedFileUrl = url;
+  lastExportedFileName = fileName;
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+
+  showToast(
+    'Drone Feed Exported',
+    `Exported feed <b>${fileName}</b> has been downloaded to your system.`,
+    url,
+    fileName
+  );
+}
+
+function exportPDF() { openExportModal('report', selectedTemplate); selectReportFormat('pdf', document.querySelector('#report-format-pills .format-pill:nth-child(1)')); }
+function exportCSV() { openExportModal('report', selectedTemplate); selectReportFormat('csv', document.querySelector('#report-format-pills .format-pill:nth-child(2)')); }
+function exportJSON() { openExportModal('report', selectedTemplate); selectReportFormat('json', document.querySelector('#report-format-pills .format-pill:nth-child(3)')); }
 
 // ═══ DASHBOARD LIVE UPDATES ═══
 function buildSliceChart(){
